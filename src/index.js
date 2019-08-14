@@ -1,3 +1,17 @@
+import back from "./assets/back.png";
+
+const imageCache = {};
+
+const loadImage = (key, t) => {
+  if (imageCache[key]) {
+    return imageCache[key];
+  } else {
+    imageCache[key] = new Image();
+    imageCache[key].src = t;
+    return imageCache[key];
+  }
+};
+
 class Game {
   constructor(id) {
     this.running = true;
@@ -27,6 +41,7 @@ class Game {
   draw() {
     this.ctx.fillStyle = "#0000ff";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.drawImage(loadImage("back", back), 10, 10);
   }
   destroy() {
     this.running = false;
