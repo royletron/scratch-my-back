@@ -2,15 +2,27 @@ import back from "./assets/tback.png";
 
 const imageCache = {};
 
-const loadImage = (key, t) => {
-  if (imageCache[key]) {
-    return imageCache[key];
-  } else {
-    imageCache[key] = new Image();
-    imageCache[key].src = t;
-    imageCache[key].setAttribute("crossOrigin", "");
-    return imageCache[key];
-  }
+const getImage = key => {
+  return imageCache[key].img;
+};
+
+const loadImages = (arr, oncomplete) => {
+  const onload = k => {
+    imageCache[k].loaded = true;
+    if (
+      Object.keys(imageCache).find(k => imageCache[k].loaded === false) ===
+      undefined
+    ) {
+      oncomplete();
+    }
+  };
+  arr.forEach(([k, t]) => {
+    let img = new Image();
+    img.src = t;
+    img.onload = () => onload(k);
+    img.setAttribute("crossOrigin", "");
+    imageCache[k] = { img, loaded: false };
+  });
 };
 
 const names = {
@@ -43,11 +55,13 @@ class Worker {
     this.name =
       names[this.gender][Math.floor(Math.random() * names[this.gender].length)];
     this.skin = skins[Math.floor(Math.random() * skins.length)];
-    this.back = new OffscreenCanvas(16 * 10, 24 * 10);
+    this.back = new OffscreenCanvas(16, 24);
     this.ctx = this.back.getContext("2d");
-    let image = loadImage("back", back);
-    this.ctx.drawImage(image, 0, 0, image.width * 10, image.height * 10);
-    this.image = this.ctx.getImageData(0, 0, this.back.width, this.back.height);
+    let image = getImage("back");
+    console.log(image);
+    this.ctx.drawImage(image, 0, 0, image.width, image.height);
+    this.image = this.ctx.getImageData(0, 0, 16, 24);
+    console.log(this.image);
   }
   draw(ctx) {
     ctx.putImageData(this.image, 0, 0);
@@ -56,10 +70,13 @@ class Worker {
 
 class Game {
   constructor(id) {
-    this.running = true;
     this.canvas = document.getElementById(id);
     this.ctx = this.canvas.getContext("2d");
     this.ctx.imageSmoothingEnabled = false;
+    loadImages([["back", back]], () => this.onLoad());
+  }
+  onLoad() {
+    this.running = true;
     this.members = [new Worker()];
     this.loop();
   }
