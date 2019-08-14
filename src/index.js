@@ -1,4 +1,4 @@
-import back from "./assets/back.png";
+import back from "./assets/tback.png";
 
 const imageCache = {};
 
